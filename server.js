@@ -8,9 +8,9 @@ var connect = require('connect');
 var DocumentHandler = require('./lib/document_handler');
 
 // Load the configuration and set some defaults
-var config = JSON.parse(fs.readFileSync('config.js', 'utf8'));
+var config = JSON.parse(fs.readFileSync('./config.js', 'utf8'));
 config.port = process.env.PORT || config.port || 7777;
-config.host = config.host || 'localhost';
+config.host = process.env.HOST || config.host || 'localhost';
 
 // Set up the logger
 if (config.logging) {
@@ -34,8 +34,18 @@ if (!config.storage) {
 if (!config.storage.type) {
   config.storage.type = 'file';
 }
-var Store = require('./lib/document_stores/' + config.storage.type);
-var preferredStore = new Store(config.storage);
+
+var Store, preferredStore;
+
+if (process.env.REDISTOGO_URL) {
+  var redisClient = require('redis-url').connect(process.env.REDISTOGO_URL);
+  Store = require('./lib/document_stores/redis');
+  preferredStore = new Store(config.storage, redisClient);
+}
+else {
+  Store = require('./lib/document_stores/' + config.storage.type);
+  preferredStore = new Store(config.storage);
+}
 
 // Compress the static javascript assets
 if (config.recompressStaticAssets) {
@@ -60,21 +70,19 @@ if (config.recompressStaticAssets) {
 }
 
 // Send the static documents into the preferred store, skipping expirations
+var path, data;
 for (var name in config.documents) {
-  var path = config.documents[name];
-  fs.readFile(path, 'utf8', function(err, data) {
-    if (data && !err) {
-      preferredStore.set(name, data, function(cb) {
-        winston.info('loaded static document', { name: name, path: path });
-      }, true);
-    }
-    else {
-      winston.warn(
-        'failed to load static document',
-        { name: name, path: path }
-      );
-    }
-  });
+  path = config.documents[name];
+  data = fs.readFileSync(path, 'utf8');
+  winston.info('loading static document', { name: name, path: path });
+  if (data) {
+    preferredStore.set(name, data, function(cb) {
+      winston.debug('loaded static document', { success: cb });
+    }, true);
+  }
+  else {
+    winston.warn('failed to load static document', { name: name, path: path });
+  }
 }
 
 // Pick up a key generator

@@ -20,6 +20,14 @@ to do things like:
 which will output a URL to share containing the contents of `cat something`'s
 STDOUT.  Check the README there for more details and usages.
 
+## Support
+
+Please consider paying what you feel this project is worth:
+
+<a href="https://www.stripeme.com/pay/1r2f">
+  <img alt="Pay" src="https://www.stripeme.com/pay.jpg" />
+</a>
+
 ## Tested Browsers
 
 * Firefox 8
@@ -134,7 +142,6 @@ forward on GETs.
 
 All of which are optional except `type` with very logical default values.
 
-
 ## Author
 
 John Crepezzi <john.crepezzi@gmail.com>
@@ -143,7 +150,7 @@ John Crepezzi <john.crepezzi@gmail.com>
 
 (The MIT License)
 
-Copyright © 2011 John Crepezzi
+Copyright © 2011-2012 John Crepezzi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the ‘Software’), to deal in
